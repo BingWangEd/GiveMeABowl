@@ -1,12 +1,10 @@
 require('dotenv').config();
 const http = require('http');
 const { parse } = require('querystring');
-
 const PORT = process.env.PORT;
 
 const server = http.createServer((req, res) => {
   if (req.method === 'POST') {
-    console.log('a post request');
     collectRequestData(req, result => {
       console.log(result);
       // send response
@@ -14,9 +12,8 @@ const server = http.createServer((req, res) => {
       const json = JSON.stringify({
         test: 'got it',
       })
-      //res.write('got it');
-      //res.end(`Parsed data belonging to ${result}`);
-      res.end(json)
+      res.write(json);
+      res.end()
     });
   }
 });

@@ -15,5 +15,8 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "slackbots": "^1.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.3"
   }
 }
