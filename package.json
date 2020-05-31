@@ -1,0 +1,19 @@
+{
+  "name": "give-me-a-bowl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/events-api": "^2.3.3",
+    "axios": "^0.19.2",
+    "dotenv": "^8.2.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5",
+    "slackbots": "^1.2.0"
+  }
+}
