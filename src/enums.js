@@ -1,3 +1,5 @@
-export const AREAS = {
+const AREAS = {
   ROPPONGI_ITCHOME: 'Roppongi Itchome',
 }
+
+module.exports = AREAS;

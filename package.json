@@ -17,6 +17,7 @@
     "slackbots": "^1.2.0"
   },
   "devDependencies": {
+    "nodemon": "^2.0.4",
     "typescript": "^3.9.3"
   }
 }
