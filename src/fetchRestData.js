@@ -1,5 +1,4 @@
 const https = require('https');
-require('dotenv').config();
 const AREAS = require('./enums');
 const AREAS_GEO_COORDS = require('./areaGeoCoords');
 
@@ -39,8 +38,7 @@ const fetchRestData = async (location = AREAS.ROPPONGI_ITCHOME) => {
 
     const restRequest = `https://api.gnavi.co.jp/RestSearchAPI/v3/?latitude=${lat}&longitude=${long}&keyid=${process.env.GNAVI_API_KEY}&range=1&hit_per_page=1&offset_page=${restNum}`;
     const finalRestData =  await httpsGetRequest(restRequest);
-
-    console.log('finalRestData: ', finalRestData);
+    return finalRestData.rest[0];
   } catch (error) {
     console.log(error);
   }

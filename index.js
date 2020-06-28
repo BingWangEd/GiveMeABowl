@@ -1,10 +1,11 @@
 require('dotenv').config();
 const http = require('http');
 const fetchRestData = require('./src/fetchRestData');
+const httpsPostRequest = require('./src/httpsPostRequest');
 const { parse } = require('querystring');
 const PORT = process.env.PORT;
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   if (req.method === 'POST') {
     collectRequestData(req, result => {
       console.log(result);
@@ -17,7 +18,21 @@ const server = http.createServer((req, res) => {
       res.end()
     });
 
-    fetchRestData();
+    const pickedRest = await fetchRestData();
+    const payload = {
+      name: pickedRest.name,
+      address: pickedRest.address,
+    }
+
+    console.log('pickedRest: ', payload);
+    const url = process.env.WEBHOOK_URL;
+
+    try { 
+      const slackResponse = await httpsPostRequest(url, payload);
+      console.log('Message response', slackResponse);
+    } catch (error) {
+      console.log(error);
+    }
   }
 });
 
@@ -27,10 +42,11 @@ const  collectRequestData = (request, callback) => {
     // parse and read data
     let body = '';
     request.on('data', chunk => {
-        body += chunk.toString();
+      body += chunk.toString();
     });
     request.on('end', () => {
-        callback(parse(body));
+      // request content type: application/x-www-form-urlencoded
+      callback(parse(body));
     });
   }
   else {
