@@ -1,14 +1,40 @@
 const https = require('https');
 
 const httpsPostRequest = async (requestUrl, postMessage) => {
-
+  const { name, address, url, description, category } = postMessage;
+  const descriptionModified = description.length === 0 ? `Owner\'s too lazy to say anything about this restaurant. All I know is it offers *${category}* food ...` : description;
   const slackBody = {
     mkdwn: true,
-    text: 'You are going to: ',
-    attachments: [{
-      color: 'good',
-      text: `${postMessage.name} @ ${postMessage.address}`,
-    }]
+    blocks: [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `*${name}* @ ${address}`
+        }
+      },
+    ],
+    attachments: [
+      {
+        color: '#F6D55C',
+        blocks: [
+          {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `:chopsticks: <${url}| Learn More>`
+            }
+          },
+          {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `:bento: ${descriptionModified}`
+            }
+          }
+        ],
+      },
+    ],
   }
   
   const options = {
