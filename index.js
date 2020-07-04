@@ -1,8 +1,10 @@
 require('dotenv').config();
 const http = require('http');
-const AREAS_GEO_COORDS = require('./src/areaGeoCoords');
 const AREAS = require('./src/enums');
-const fetchRestData = require('./src/fetchRestData');
+const {
+  fetchRestData,
+  fetchCoordsData,
+} = require('./src/fetchData');
 const httpsPostRequest = require('./src/httpsPostRequest');
 const { parse } = require('querystring');
 const PORT = process.env.PORT;
@@ -10,23 +12,23 @@ const PORT = process.env.PORT;
 const server = http.createServer(async (req, res) => {
   if (req.method === 'POST') {
     let area = AREAS.ROPPONGI_ITCHOME;
-    let  responseText = 'Ehhh, I don\'t know this area. Let me just pick a random place ...';
+    let  responseText = 'Ehhh, you didn\'t specify any area. I\'ll just go with Roppongi Itchome ...';
     collectRequestData(req, result => {
       console.log(result);
       // send response
       res.writeHead(200, { 'Content-Type': 'text/html' });
       
-      if (result.text === 'Ebisu') {
-        console.log('area exists');
-        area = 'EBISU';
-        responseText = 'So you are going to ...';
-      };
+      if (result.text !== '') {
+        responseText = `${result.text}? Nice pick! You are going to ...`;
+        area = result.text
+      }
 
       res.write(responseText);
       res.end()
     });
 
-    const pickedRest = await fetchRestData(area);
+    const areaCoords = await fetchCoordsData(area);
+    const pickedRest = await fetchRestData(areaCoords);
 
     const { name, address, url: restUrl, pr, category } = pickedRest
     const payload = {
@@ -37,7 +39,6 @@ const server = http.createServer(async (req, res) => {
       category,
     }
 
-    console.log('pickedRest: ', pickedRest);
     const url = process.env.WEBHOOK_URL;
 
     try { 

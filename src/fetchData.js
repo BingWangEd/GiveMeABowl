@@ -27,8 +27,24 @@ const httpsGetRequest = async (requestUrl) => {
   });
 }
 
-const fetchRestData = async (location = AREAS.ROPPONGI_ITCHOME) => {
-  const { lat, long } = AREAS_GEO_COORDS[location];
+const fetchCoordsData = async (location) => {
+  const locationNoSpace = location.replace(/ /g, "+");
+  const requestUrl = `https://api.opencagedata.com/geocode/v1/geojson?q=${locationNoSpace}&key=${process.env.OPEN_CAGE_API_KEY}&pretty=1`;
+
+  try {
+    const data = await httpsGetRequest(requestUrl);
+    const geometry = data.features[0].geometry;
+    return {
+      lat: geometry.coordinates[1],
+      long: geometry.coordinates[0],
+    };
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const fetchRestData = async (geoLocation) => {
+  const { lat, long } = geoLocation;
   const requestUrl = `https://api.gnavi.co.jp/RestSearchAPI/v3/?latitude=${lat}&longitude=${long}&keyid=${process.env.GNAVI_API_KEY}&range=1&hit_per_page=1`;
 
   try {
@@ -48,4 +64,7 @@ const getRandomRestNumber = (totoalHit) => {
   return Math.floor(Math.random()*(totoalHit-1)+1);
 }
 
-module.exports = fetchRestData;
+module.exports = {
+  fetchRestData,
+  fetchCoordsData,
+};
