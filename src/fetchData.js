@@ -33,6 +33,8 @@ const fetchCoordsData = async (location) => {
   const OPEN_CAGE_API_KEY = config('OPEN_CAGE_API_KEY');
   const requestUrl = `https://api.opencagedata.com/geocode/v1/geojson?q=${locationNoSpace}&key=${OPEN_CAGE_API_KEY}&pretty=1`;
 
+  console.log('coords requestUrl: ', requestUrl);
+
   try {
     const data = await httpsGetRequest(requestUrl);
     const geometry = data.features[0].geometry;
@@ -41,7 +43,7 @@ const fetchCoordsData = async (location) => {
       long: geometry.coordinates[0],
     };
   } catch (error) {
-    console.log(error);
+    console.log(`fetch coords got error: ${error}`);
   }
 }
 
@@ -49,6 +51,8 @@ const fetchRestData = async (geoLocation) => {
   const { lat, long } = geoLocation;
   const GNAVI_API_KEY = config('GNAVI_API_KEY');
   const requestUrl = `https://api.gnavi.co.jp/RestSearchAPI/v3/?latitude=${lat}&longitude=${long}&keyid=${GNAVI_API_KEY}&range=1&hit_per_page=1`;
+
+  console.log('rest requestUrl: ', requestUrl);
 
   try {
     const data =  await httpsGetRequest(requestUrl);

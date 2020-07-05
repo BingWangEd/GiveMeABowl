@@ -28,7 +28,9 @@ const server = http.createServer(async (req, res) => {
     });
 
     const areaCoords = await fetchCoordsData(area);
+    console.log('area coords: ', areaCoords);
     const pickedRest = await fetchRestData(areaCoords);
+    console.log('picked restaurant: ', pickedRest);
 
     const { name, address, url: restUrl, pr, category } = pickedRest
     const payload = {
