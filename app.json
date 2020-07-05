@@ -1,0 +1,21 @@
+{
+  "name": "Give Me a bOwl",
+  "description": "Starbot is GitHub's trending open-source page, reincarnated as a Slack bot",
+  "repository": "https://github.com/BingWangEd/GiveMeABowl",
+  "success_url": "/",
+  "env": {
+    "OAUTH_TOKEN": {
+      "required": true
+    },
+    "OPEN_CAGE_API_KEY": {
+      "required": true
+    },
+    "SLACK_SIGNING_SECRET": {
+      "required": true
+    },
+    "WEBHOOK_URL": {
+      "required": true
+    },
+    "NODE_ENV": "staging"
+  }
+}

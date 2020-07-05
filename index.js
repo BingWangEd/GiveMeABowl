@@ -1,13 +1,13 @@
-require('dotenv').config();
 const http = require('http');
 const AREAS = require('./src/enums');
+const config = require('./config');
 const {
   fetchRestData,
   fetchCoordsData,
 } = require('./src/fetchData');
 const httpsPostRequest = require('./src/httpsPostRequest');
 const { parse } = require('querystring');
-const PORT = process.env.PORT;
+const PORT = config('PORT');
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'POST') {
@@ -39,7 +39,7 @@ const server = http.createServer(async (req, res) => {
       category,
     }
 
-    const url = process.env.WEBHOOK_URL;
+    const url = config('WEBHOOK_URL');
 
     try { 
       const slackResponse = await httpsPostRequest(url, payload);
