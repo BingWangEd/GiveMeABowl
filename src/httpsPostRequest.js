@@ -68,4 +68,52 @@ const httpsPostRequest = async (requestUrl, postMessage) => {
   })
 }
 
-module.exports = httpsPostRequest;
+const httpsErrorPostRequest = async (requestUrl, errorMessage) => {
+  const slackBody = {
+    mkdwn: true,
+    blocks: [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `This is awkward :zany_face:. ${errorMessage} Try again? :drooling_face:`
+        }
+      },
+    ],
+  }
+  
+  const options = {
+    method: 'POST',
+    header: {
+      'Content-Type': 'application/json'
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(requestUrl, options, (res) => {
+      let data = '';
+  
+      console.log('Status Code:', res.statusCode);
+  
+      res.on('data', (chunk) => {
+          data += chunk;
+      });
+  
+      res.on('end', () => {
+        console.log('data: ', data);
+        resolve(data);
+      });
+  
+    }).on("error", (err) => {
+        reject(new Error(`Post request error: ${err.message}`));
+    });
+  
+    req.write(JSON.stringify(slackBody));
+    req.end();
+  })
+}
+
+module.exports = { 
+  httpsPostRequest,
+  httpsErrorPostRequest,
+};

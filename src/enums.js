@@ -8,4 +8,13 @@ const AREAS = {
   TOKYO_STATION: 'Tokyo Station',
 }
 
-module.exports = AREAS;
+const ERROR_TYPE = {
+  REST: 'restaurant_fetch_error',
+  COORDS: 'coords_fetch_error',
+  GET_REQUEST: 'get_request_error',
+}
+
+module.exports = {
+  AREAS,
+  ERROR_TYPE,
+};
