@@ -1,90 +1,101 @@
 const http = require('http');
-const { AREAS, ERROR_TYPE } = require('./src/enums');
+const { MESSAGE_TYPE, ERROR_TYPE } = require('./src/enums');
 const config = require('./config');
 const {
-  fetchRestData,
+  fetchRestaurantData,
   fetchCoordsData,
-} = require('./src/fetchData');
-const { httpsPostRequest, httpsErrorPostRequest } = require('./src/httpsPostRequest');
+  sendSlackChannelPostRequest
+} = require('./src/apiRequestMethods');
 const { parse } = require('querystring');
+
 const PORT = config('PORT');
+const DEFAULT_AREA = 'Roppongi Itchome';
 
 const errorMessage = {
-  [ERROR_TYPE.REST]: "It seems like we cannot find any restaurant around this place. I only know Tokyo\'s restaurants.",
+  [ERROR_TYPE.RESTAURANT]: "It seems like we cannot find any restaurant around this place. I only know Tokyo\'s restaurants.",
   [ERROR_TYPE.COORDS]: "It seems like we cannot find this location.",
-}
+};
 
 const server = http.createServer(async (req, res) => {
-  if (req.method === 'POST') {
-    let area = AREAS.ROPPONGI_ITCHOME;
-    let  responseText = 'Ehhh, you didn\'t specify any area. I\'ll just go with Roppongi Itchome ...';
-    collectRequestData(req, async result => {
-      if (!result) return;
+  if (req.method !== 'POST') return;
 
-      console.log(result);
-      // send response
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      
-      if (result.text !== '') {
-        responseText = `${result.text}? Nice pick! You are going to ...`;
-        area = result.text
-      }
+  const result = await collectRequestData(req, (result) => {
+    if (!result) return;
 
-      res.write(responseText);
-      res.end();
+    // send response
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    const area = result.text === '' ? DEFAULT_AREA : result.text;
+    const responseText = result.text === '' ? `Ehhh, you didn\'t specify any area. I\'ll just go with ${area} ...` : `${area}? Nice pick! You are going to ...`;
+    
+    res.write(responseText);
+    res.end();
 
-      const url = config('WEBHOOK_URL');
+    return {
+      area,
+    }
+  });
 
-      const areaCoords = await fetchCoordsData(area);
-      
-      if (areaCoords === ERROR_TYPE.COORDS) {
-        console.log('area coords error: ', areaCoords);
-        httpsErrorPostRequest(url, errorMessage[areaCoords]);
-      }
-      // shoud return directly afterwards
-      const pickedRest = await fetchRestData(areaCoords);
-      
-      if (pickedRest === ERROR_TYPE.REST) {
-        console.log('picked restaurant error: ', errorMessage[pickedRest]);
-        httpsErrorPostRequest(url, pickedRest); // need to return here
-      }
+  const { area } = result;
+  
+  let areaCoords;
+  try {
+    areaCoords = await fetchCoordsData(area);
+  } catch {
+    // errorPostRequest();
+    // httpsErrorPostRequest(url, errorMessage[areaCoords]);
+    return;
+  }
+  
+  let pickedRest;
+  try {
+    pickedRest = await fetchRestaurantData(areaCoords);
+  } catch {
+    // errorPostRequest();
+    // httpsErrorPostRequest(url, errorMessage[pickedRest]); // need to return here
+    return;
+  }
 
-      const { name, address, url: restUrl, pr, category } = pickedRest
-      const payload = {
-        name,
-        address,
-        url: restUrl,
-        description: pr.pr_short,
-        category,
-      }
+  const { name, address, url, pr, category, opentime } = pickedRest;
+  const payload = {
+    name,
+    address,
+    url,
+    description: pr.pr_short,
+    category,
+    opentime,
+    message_type: MESSAGE_TYPE.RESTAURANT,
+  }
 
-      try { 
-        const slackResponse = await httpsPostRequest(url, payload);
-        console.log('Message response', slackResponse);
-      } catch (error) {
-        console.log(error);
-      }
-    });
+  try { 
+    const slackResponse = await sendSlackChannelPostRequest(payload);
+    console.log('Message response', slackResponse);
+  } catch (error) {
+    console.log(error);
+    // errorPostRequest();
+    return
   }
 });
 
-const  collectRequestData = (request, callback) => {
+const  collectRequestData = async (request, callback) => {
   const FORM_URLENCODED = 'application/x-www-form-urlencoded';
-  if(request.headers['content-type'] === FORM_URLENCODED) {
-    // parse and read data
-    let body = [];
-    request.on('data', chunk => {
-      body.push(chunk);
-    });
-    request.on('end', () => {
-      // request content type: application/x-www-form-urlencoded
-      body = Buffer.concat(body).toString();
-      callback(parse(body));
-    });
-  }
-  else {
-    callback(null);
-  }
+  let result = null;
+  return new Promise((resolve, reject) => {
+    if(request.headers['content-type'] === FORM_URLENCODED) {
+      // parse and read data
+      let body = [];
+      request.on('data', chunk => {
+        body.push(chunk);
+      });
+      request.on('end', () => {
+        // request content type: application/x-www-form-urlencoded
+        body = Buffer.concat(body).toString();
+        result = callback(parse(body));
+        resolve(result);
+      });
+    } else {
+      reject(callback(null)); // call error
+    }
+  });
 }
 
 server.listen(PORT, () => {
