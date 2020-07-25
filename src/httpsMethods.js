@@ -1,10 +1,11 @@
 const https = require('https');
 
-const httpsGetRequest = async (requestUrl) => {
+const httpsGetRequest = (requestUrl) => {
   return new Promise((resolve, reject) => {
     https.get(requestUrl, (res) => {
+      console.log('Get request response status code: ', res.statusCode);
       if (res.statusCode < 200 || res.statusCode >= 300) {
-        reject(ERROR_TYPE.GET_REQUEST);
+        reject(res.statusCode);
       }
 
       let data = '';
@@ -20,13 +21,12 @@ const httpsGetRequest = async (requestUrl) => {
       });
     }).on('error', (error) => {
       console.error(`Get request error: ${error.message}`);
-      reject(ERROR_TYPE.GET_REQUEST);
+      reject(error);
     }).end();
   });
 };
 
-const httpsPostRequest = async (reqUrl, reqBody) => {
-
+const httpsPostRequest = (reqUrl, reqBody) => {
   const options = {
     method: 'POST',
     header: {
@@ -38,8 +38,10 @@ const httpsPostRequest = async (reqUrl, reqBody) => {
     const req = https.request(reqUrl, options, (res) => {
       let data = '';
   
-      console.log('Slack post request\'s response status code:', res.statusCode);
-  
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        reject(res.statusCode);
+      }
+
       res.on('data', (chunk) => {
           data += chunk;
       });
@@ -49,9 +51,8 @@ const httpsPostRequest = async (reqUrl, reqBody) => {
       });
   
     }).on("error", (err) => {
-        reject(new Error(`Post request error: ${err.message}`));
+      reject(new Error(`Post request error: ${err.message}`));
     });
-  
     req.write(JSON.stringify(reqBody));
     req.end();
   })

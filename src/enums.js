@@ -1,8 +1,7 @@
 const ERROR_TYPE = {
   RESTAURANT: 'restaurant_fetch_error',
   COORDS: 'coords_fetch_error',
-  GET_REQUEST: 'get_request_error',
-  SLACK_POST_REQUEST: 'post_to_slack_error',
+  SLACK: 'post_to_slack_channel_error'
 }
 
 const MESSAGE_TYPE = {
